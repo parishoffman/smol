@@ -58,19 +58,19 @@ pub struct Lexer<'input> {
 impl<'input> Lexer<'input> {
     pub fn new(input: &'input str) -> Self {
         let matchers = [
-        (r"\$print", Print),
-        (r"\$read", Read),
-        (r"\$if", If),
-        (r"\{", LBrace),
-        (r"\}", RBrace),
-        (r":=", Assign),
-        (r"\+", Plus),
-        (r"-", Minus),
-        (r"\*", Mul),
-        (r"/", Div),
-        (r"<", Lt),
-        (r"[a-zA-Z_][a-zA-Z0-9_]*", Id),
-        (r"[0-9]+", Num),
+            (r"\$print", Print),
+            (r"\$read", Read),
+            (r"\$if", If),
+            (r"\{", LBrace),
+            (r"\}", RBrace),
+            (r":=", Assign),
+            (r"\+", Plus),
+            (r"-", Minus),
+            (r"\*", Mul),
+            (r"/", Div),
+            (r"<", Lt),
+            (r"[a-zA-Z_][a-zA-Z0-9_]*", Id),
+            (r"[0-9]+", Num),
         ]
         .into_iter()
         .map(|(regex, kind)| (Regex::new(&format!(r"\A{regex}")).unwrap(), kind))

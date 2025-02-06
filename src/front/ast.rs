@@ -16,7 +16,7 @@ pub enum Stmt {
         guard: Expr,
         tt: Vec<Stmt>,
         ff: Vec<Stmt>,
-    }
+    },
 }
 
 #[derive(Debug)]
@@ -33,5 +33,9 @@ pub enum Expr {
 
 #[derive(Debug)]
 pub enum BOp {
-    Mul, Div, Add, Sub, Lt
+    Mul,
+    Div,
+    Add,
+    Sub,
+    Lt,
 }

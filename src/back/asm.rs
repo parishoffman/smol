@@ -153,16 +153,7 @@ const GC_INIT_FN: &str = "_cflat_init_gc";
 const ALLOC_FN: &str = "_cflat_alloc";
 
 // Argument registers used in the RISC-V ABI
-static ARG_REGISTERS: [Register; 8] = [
-    A0,
-    A1,
-    A2,
-    A3,
-    A4,
-    A5,
-    A6,
-    A7,
-];
+static ARG_REGISTERS: [Register; 8] = [A0, A1, A2, A3, A4, A5, A6, A7];
 
 /// Registers for the actual risc-v machine, in the order in the register file.
 #[derive(Clone, Copy, Debug, Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -422,10 +413,7 @@ impl Instruction {
 
     /// Create a jump instruction that does not save the return address.
     pub fn jump(target: JumpTarget) -> Instruction {
-        Instruction::Jal {
-            dst: Zero,
-            target,
-        }
+        Instruction::Jal { dst: Zero, target }
     }
 
     /// Create a jump instruction that emulates a direct call using the ra

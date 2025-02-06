@@ -17,20 +17,9 @@ pub struct Block {
 
 #[derive(Debug)]
 pub enum Instruction {
-    Copy {
-        dst: Id,
-        src: Id,
-    },
-    Const {
-        dst: Id,
-        src: i64,
-    },
-    Arith {
-        op: BOp,
-        dst: Id,
-        lhs: Id,
-        rhs: Id,
-    },
+    Copy { dst: Id, src: Id },
+    Const { dst: Id, src: i64 },
+    Arith { op: BOp, dst: Id, lhs: Id, rhs: Id },
     Read(Id),
     Print(Id),
 }
@@ -39,9 +28,5 @@ pub enum Instruction {
 pub enum Terminator {
     Exit,
     Jump(Id),
-    Branch {
-        guard: Id,
-        tt: Id,
-        ff: Id,
-    },
+    Branch { guard: Id, tt: Id, ff: Id },
 }

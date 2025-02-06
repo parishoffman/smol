@@ -2,9 +2,9 @@
 
 pub mod ast;
 pub mod lex;
-pub mod parse;
 pub mod lower;
+pub mod parse;
 
 pub use ast::*;
-pub use parse::parse;
 pub use lower::lower;
+pub use parse::parse;

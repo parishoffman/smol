@@ -5,7 +5,7 @@
 // to develop.
 #![allow(dead_code)]
 
+pub mod back;
 pub mod common;
 pub mod front;
 pub mod middle;
-pub mod back;

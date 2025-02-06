@@ -3,11 +3,7 @@
 //!
 //! run with `--help` for more info.
 
-use smol::{
-    front::*,
-    middle::*,
-    back::*,
-};
+use smol::{back::*, front::*, middle::*};
 
 use clap::{Parser, ValueEnum};
 
@@ -20,7 +16,7 @@ struct Args {
     #[arg(value_enum, short, long, default_value_t = Output::Asm)]
     out: Output,
     /// turn on optimizations
-    #[arg(short='O', default_value_t = false)]
+    #[arg(short = 'O', default_value_t = false)]
     optimize: bool,
 }
 
@@ -37,13 +33,13 @@ enum Output {
 }
 
 fn get_ir(input: &str, opt: bool) -> tir::Program {
-            let ast = parse(&input).unwrap();
-            let ir = lower(ast);
-            if opt {
-                optimize(ir)
-            } else {
-                ir
-            }
+    let ast = parse(&input).unwrap();
+    let ir = lower(ast);
+    if opt {
+        optimize(ir)
+    } else {
+        ir
+    }
 }
 
 fn main() {
@@ -59,7 +55,7 @@ fn main() {
             while let Some(token) = lexer.next() {
                 println!("{token}");
             }
-        },
+        }
         Ast => {
             println!("{:?}", parse(&input).unwrap());
         }
