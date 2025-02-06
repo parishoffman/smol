@@ -9,14 +9,14 @@ use TokenKind::*;
 #[display("kind: '{kind}', part of input: '{text}'")]
 pub struct Token<'src> {
     /// What token class this token belongs to.
-    kind: TokenKind,
+    pub kind: TokenKind,
     /// What part of the input this token carries.
-    text: &'src str,
+    pub text: &'src str,
 }
 
 /// Token classes.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Display, Debug)]
-enum TokenKind {
+pub enum TokenKind {
     #[display("id")]
     Id,
     #[display("num")]
@@ -127,22 +127,22 @@ impl<'input> Lexer<'input> {
     }
 }
 
+/// Read all the tokens from input
+pub fn get_tokens(input: &str) -> Vec<Token> {
+    let mut lexer = Lexer::new(input);
+    let mut tokens = vec![];
+    while let Some(t) = lexer.next() {
+        tokens.push(t);
+    }
+
+    tokens
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     // SECTION: helpers
-
-    // Read all the tokens from input
-    fn get_tokens(input: &str) -> Vec<Token> {
-        let mut lexer = Lexer::new(input);
-        let mut tokens = vec![];
-        while let Some(t) = lexer.next() {
-            tokens.push(t);
-        }
-
-        tokens
-    }
 
     // Create an id token
     fn id(text: &str) -> Token {
