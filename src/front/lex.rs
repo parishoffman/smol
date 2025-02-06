@@ -2,9 +2,10 @@
 
 use derive_more::Display;
 use regex::Regex;
+use TokenKind::*;
 
 /// Tokens in the program
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Display)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Display, Debug)]
 #[display("kind: '{kind}', part of input: '{text}'")]
 pub struct Token<'src> {
     /// What token class this token belongs to.
@@ -14,7 +15,7 @@ pub struct Token<'src> {
 }
 
 /// Token classes.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Display)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Display, Debug)]
 enum TokenKind {
     #[display("id")]
     Id,
@@ -42,20 +43,9 @@ enum TokenKind {
     Div,
     #[display("<")]
     Lt,
-}
-
-pub struct LexError(usize, char);
-
-impl Display for LexError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Lexer error: unexpected character {:?} at {}", self.1, self.0)
-    }
-}
-
-impl std::fmt::Debug for LexError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Lexer error: unexpected character {:?} at {}", self.1, self.0)
-    }
+    #[display("error")]
+    /// For unrecognized characters.
+    Error,
 }
 
 pub struct Lexer<'input> {
@@ -67,11 +57,30 @@ pub struct Lexer<'input> {
 
 impl<'input> Lexer<'input> {
     pub fn new(input: &'input str) -> Self {
+        let matchers = [
+        (r"\$print", Print),
+        (r"\$read", Read),
+        (r"\$if", If),
+        (r"\{", LBrace),
+        (r"\}", RBrace),
+        (r":=", Assign),
+        (r"\+", Plus),
+        (r"-", Minus),
+        (r"\*", Mul),
+        (r"/", Div),
+        (r"<", Lt),
+        (r"[a-zA-Z_][a-zA-Z0-9_]*", Id),
+        (r"[0-9]+", Num),
+        ]
+        .into_iter()
+        .map(|(regex, kind)| (Regex::new(&format!(r"\A{regex}")).unwrap(), kind))
+        .collect::<Vec<_>>();
+        // the following cases special regexes that are slightly different from the printed token
         Lexer {
             input,
             pos: 0,
             whitespace: Regex::new(r"\A(?:[ \t\f\r\n\v]|(?://.*))*").unwrap(),
-            matchers: vec![],  // todo: fill this in
+            matchers,
         }
     }
 
@@ -89,8 +98,181 @@ impl<'input> Lexer<'input> {
 
     /// Get the next token if possible.
     ///
-    /// The return type distinguishes between end-of-input and lexer error.
-    pub fn next(&mut self) -> Result<Option<Token>, LexError> {
-        todo!()
+    /// The return value should be:
+    /// - None if there are no more tokens (reached the end of input).
+    /// - Some(token) where the token is the next token.
+    /// - Some(Error) if none of the recognizers work, i.e. if there is a lexer error.
+    pub fn next<'a>(&'a mut self) -> Option<Token<'input>> {
+        self.skip_whitespace();
+        if self.pos == self.input.len() {
+            return None;
+        }
+
+        let (kind, len) = self
+            .matchers
+            .iter()
+            .find_map(|(regex, kind)| {
+                regex
+                    .find(&self.input[self.pos..])
+                    .map(|m| (*kind, m.len()))
+            })
+            .unwrap_or((Error, 1));
+
+        self.pos += len;
+
+        Some(Token {
+            kind,
+            text: &self.input[(self.pos - len)..self.pos],
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // SECTION: helpers
+
+    // Read all the tokens from input
+    fn get_tokens(input: &str) -> Vec<Token> {
+        let mut lexer = Lexer::new(input);
+        let mut tokens = vec![];
+        while let Some(t) = lexer.next() {
+            tokens.push(t);
+        }
+
+        tokens
+    }
+
+    // Create an id token
+    fn id(text: &str) -> Token {
+        Token { kind: Id, text }
+    }
+
+    // Create a num token
+    fn num(text: &str) -> Token {
+        Token { kind: Num, text }
+    }
+
+    // Create an error token
+    fn error(text: &str) -> Token {
+        Token { kind: Error, text }
+    }
+
+    // Create a token with only one lexeme (anything except id, num, error).
+    fn t(kind: TokenKind) -> Token<'static> {
+        Token {
+            kind,
+            text: match kind {
+                Id | Num | Error => unreachable!(),
+                Assign => ":=",
+                Print => "$print",
+                Read => "$read",
+                If => "$if",
+                LBrace => "{",
+                RBrace => "}",
+                Plus => "+",
+                Minus => "-",
+                Mul => "*",
+                Div => "/",
+                Lt => "<",
+            },
+        }
+    }
+
+    // SECTION: tests
+
+    #[test]
+    fn skip_whitespace() {
+        let mut lexer = Lexer::new("foo");
+        lexer.skip_whitespace();
+        assert_eq!(lexer.pos, 0);
+        let mut lexer = Lexer::new(" \n\t  foo");
+        lexer.skip_whitespace();
+        assert_eq!(lexer.pos, 5);
+        let mut lexer = Lexer::new(" // stuff\n\t  foo ");
+        lexer.skip_whitespace();
+        assert_eq!(lexer.pos, 13);
+    }
+
+    #[test]
+    fn empty() {
+        assert_eq!(get_tokens(""), vec![]);
+        assert_eq!(get_tokens("  \n//hello\n"), vec![]);
+        assert_eq!(get_tokens("  \n//hi"), vec![]);
+    }
+
+    #[test]
+    fn single_token() {
+        let tests = [
+            ("x", vec![id("x")]),
+            ("print", vec![id("print")]),
+            ("if", vec![id("if")]),
+            ("yolo", vec![id("yolo")]),
+            ("3", vec![num("3")]),
+            ("0345678910", vec![num("0345678910")]),
+            ("%", vec![error("%")]),
+            (":=", vec![t(Assign)]),
+            ("$print", vec![t(Print)]),
+            ("$read", vec![t(Read)]),
+            ("$if", vec![t(If)]),
+            ("{", vec![t(LBrace)]),
+            ("}", vec![t(RBrace)]),
+            ("+", vec![t(Plus)]),
+            ("-", vec![t(Minus)]),
+            ("*", vec![t(Mul)]),
+            ("/", vec![t(Div)]),
+            ("<", vec![t(Lt)]),
+        ];
+
+        for (input, expected) in tests {
+            assert_eq!(
+                get_tokens(input),
+                expected,
+                "the lexer produced the wrong results for the input {input:?}"
+            )
+        }
+    }
+
+    #[test]
+    fn multi_token() {
+        assert_eq!(
+            get_tokens("x$print$read$if{}+0-*$/<"),
+            vec![
+                id("x"),
+                t(Print),
+                t(Read),
+                t(If),
+                t(LBrace),
+                t(RBrace),
+                t(Plus),
+                num("0"),
+                t(Minus),
+                t(Mul),
+                error("$"),
+                t(Div),
+                t(Lt),
+            ]
+        );
+        assert_eq!(
+            get_tokens("x yz $print $read $if { } +  0   -  //hi\n * $ read / < "),
+            vec![
+                id("x"),
+                id("yz"),
+                t(Print),
+                t(Read),
+                t(If),
+                t(LBrace),
+                t(RBrace),
+                t(Plus),
+                num("0"),
+                t(Minus),
+                t(Mul),
+                error("$"),
+                id("read"),
+                t(Div),
+                t(Lt),
+            ]
+        );
     }
 }

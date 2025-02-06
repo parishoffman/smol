@@ -8,14 +8,8 @@ use super::ast::*;
 use super::lex::*;
 
 #[derive(Display)]
-#[display("{}", self.0)]
+#[display("Parse error: {}", self.0)]
 pub struct ParseError(String);
-
-impl From<LexError> for ParseError {
-    fn from(lex_error: LexError) -> Self {
-        ParseError(format!("{}", lex_error))
-    }
-}
 
 impl Debug for ParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

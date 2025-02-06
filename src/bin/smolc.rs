@@ -56,7 +56,7 @@ fn main() {
     match args.out {
         Tokens => {
             let mut lexer = lex::Lexer::new(&input);
-            while let Some(token) = lexer.next().unwrap() {
+            while let Some(token) = lexer.next() {
                 println!("{token}");
             }
         },
