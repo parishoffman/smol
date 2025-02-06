@@ -126,7 +126,7 @@
 //! ## Reservation of temporary registers
 //!
 //! - the code generator is permitted to use t0--t6 as long as their use don't
-//! span multiple instructions.
+//!   span multiple instructions.
 //!
 //! # Register allocation
 //!

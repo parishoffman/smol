@@ -60,17 +60,15 @@ impl<'a> Parser<'a> {
     fn eat(&self, kind: TokenKind) -> ParseResult<()> {
         if self.next_is(kind) {
             Ok(())
+        } else if let Some(actual) = self.peek() {
+            Err(ParseError(format!(
+                "Expected a token with kind {kind}, found a token with kind {} and text `{}`.",
+                actual.kind, actual.text
+            )))
         } else {
-            if let Some(actual) = self.peek() {
-                Err(ParseError(format!(
-                    "Expected a token with kind {kind}, found a token with kind {} and text `{}`.",
-                    actual.kind, actual.text
-                )))
-            } else {
-                Err(ParseError(format!(
-                    "Expected a token with kind {kind} but reached the end of input."
-                )))
-            }
+            Err(ParseError(format!(
+                "Expected a token with kind {kind} but reached the end of input."
+            )))
         }
     }
 

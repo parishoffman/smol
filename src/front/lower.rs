@@ -3,6 +3,6 @@
 use super::ast;
 use crate::middle::tir;
 
-pub fn lower(program: ast::Program) -> tir::Program {
+pub fn lower(_program: ast::Program) -> tir::Program {
     todo!()
 }

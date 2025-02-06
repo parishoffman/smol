@@ -33,7 +33,7 @@ enum Output {
 }
 
 fn get_ir(input: &str, opt: bool) -> tir::Program {
-    let ast = parse(&input).unwrap();
+    let ast = parse(input).unwrap();
     let ir = lower(ast);
     if opt {
         optimize(ir)
