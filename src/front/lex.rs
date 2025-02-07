@@ -103,39 +103,13 @@ impl<'input> Lexer<'input> {
     /// - Some(token) where the token is the next token.
     /// - Some(Error) if none of the recognizers work, i.e. if there is a lexer error.
     pub fn next<'a>(&'a mut self) -> Option<Token<'input>> {
-        self.skip_whitespace();
-        if self.pos == self.input.len() {
-            return None;
-        }
-
-        let (kind, len) = self
-            .matchers
-            .iter()
-            .find_map(|(regex, kind)| {
-                regex
-                    .find(&self.input[self.pos..])
-                    .map(|m| (*kind, m.len()))
-            })
-            .unwrap_or((Error, 1));
-
-        self.pos += len;
-
-        Some(Token {
-            kind,
-            text: &self.input[(self.pos - len)..self.pos],
-        })
+        todo!()
     }
 }
 
 /// Read all the tokens from input
 pub fn get_tokens(input: &str) -> Vec<Token> {
-    let mut lexer = Lexer::new(input);
-    let mut tokens = vec![];
-    while let Some(t) = lexer.next() {
-        tokens.push(t);
-    }
-
-    tokens
+    todo!()
 }
 
 #[cfg(test)]
